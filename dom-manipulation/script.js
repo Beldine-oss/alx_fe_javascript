@@ -40,6 +40,46 @@ function showRandomQuote() {
   sessionStorage.setItem("lastViewedQuote", index);
 }
 
+// Populate categories in the dropdown
+function populateCategories() {
+  const categorySet = new Set(quotes.map(q => q.category));
+  const filter = document.getElementById("categoryFilter");
+  filter.innerHTML = '<option value="all">All Categories</option>';
+  categorySet.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    filter.appendChild(option);
+  });
+
+  // Restore last selected filter from localStorage
+  const lastFilter = localStorage.getItem("lastCategoryFilter");
+  if (lastFilter && filter.querySelector(`option[value="${lastFilter}"]`)) {
+    filter.value = lastFilter;
+  }
+}
+
+// Filter quotes based on selected category
+function filterQuotes() {
+  const filter = document.getElementById("categoryFilter").value;
+  localStorage.setItem("lastCategoryFilter", filter);
+
+  let filteredQuotes = quotes;
+  if (filter !== "all") {
+    filteredQuotes = quotes.filter(q => q.category === filter);
+  }
+
+  // Display filtered quotes
+  const display = document.getElementById("quoteDisplay");
+  if (filteredQuotes.length === 0) {
+    display.innerHTML = "<em>No quotes available for this category.</em>";
+    return;
+  }
+  display.innerHTML = filteredQuotes.map(q =>
+    `&quot;${q.text}&quot; &mdash; [<strong>${q.category}</strong>]`
+  ).join("<br><br>");
+}
+
 // Function: addQuote
 function addQuote() {
   var textEl = document.getElementById("newQuoteText");
@@ -50,7 +90,8 @@ function addQuote() {
   if (text && category) {
     quotes.push({ text: text, category: category });
     saveQuotes();
-    showRandomQuote(); // update display
+    populateCategories();
+    filterQuotes();
     textEl.value = "";
     catEl.value = "";
   }
@@ -136,7 +177,8 @@ document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
 // Initialize
 loadQuotes();
-showRandomQuote();
+populateCategories();
+filterQuotes();
 createAddQuoteForm();
 
 // Restore last viewed quote if available (sessionStorage demo)
@@ -146,6 +188,9 @@ if (lastViewed !== null && quotes[lastViewed]) {
   document.getElementById("quoteDisplay").innerHTML =
     '&quot;' + q.text + '&quot; &mdash; [<strong>' + q.category + '</strong>]';
 }
+
+// Listen for filter changes
+document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
 
 // Ensure functions are global for checker
 window.showRandomQuote = showRandomQuote;
