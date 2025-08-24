@@ -179,14 +179,75 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Event listener on "Show New Quote" button
-document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+// Simulated server endpoint (using JSONPlaceholder for demonstration)
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
+
+// Periodically fetch quotes from server and sync
+function fetchQuotesFromServer() {
+  fetch(SERVER_URL)
+    .then(response => response.json())
+    .then(serverData => {
+      // Simulate server quotes format
+      const serverQuotes = serverData.slice(0, 5).map(post => ({
+        text: post.title,
+        category: "Server"
+      }));
+
+      // Conflict resolution: server data takes precedence
+      let conflict = false;
+      if (JSON.stringify(serverQuotes) !== JSON.stringify(quotes.slice(0, 5))) {
+        conflict = true;
+        quotes = [...serverQuotes, ...quotes.slice(5)];
+        saveQuotes();
+        populateCategories();
+        filterQuotes();
+      }
+
+      // Notify user if conflict was resolved
+      if (conflict) {
+        showNotification("Quotes updated from server. Server data has replaced local data for the first 5 quotes.");
+      }
+    })
+    .catch(() => {
+      showNotification("Failed to sync with server.");
+    });
+}
+
+// Notification UI
+function showNotification(msg) {
+  let note = document.getElementById("notification");
+  if (!note) {
+    note = document.createElement("div");
+    note.id = "notification";
+    note.style.background = "#ffeeba";
+    note.style.border = "1px solid #f5c6cb";
+    note.style.padding = "10px";
+    note.style.margin = "10px 0";
+    document.body.insertBefore(note, document.body.firstChild);
+  }
+  note.textContent = msg;
+  setTimeout(() => { note.textContent = ""; }, 4000);
+}
+
+// Manual sync button
+function createSyncButton() {
+  let btn = document.getElementById("syncBtn");
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "syncBtn";
+    btn.textContent = "Sync with Server";
+    btn.onclick = fetchQuotesFromServer;
+    document.body.insertBefore(btn, document.getElementById("formContainer"));
+  }
+}
 
 // Initialize
 loadQuotes();
 populateCategories();
 filterQuotes();
 createAddQuoteForm();
+createSyncButton();
+setInterval(fetchQuotesFromServer, 30000); // auto-sync every 30 seconds
 
 // Restore last viewed quote if available (sessionStorage demo)
 const lastViewed = sessionStorage.getItem("lastViewedQuote");
@@ -198,6 +259,9 @@ if (lastViewed !== null && quotes[lastViewed]) {
 
 // Listen for filter changes
 document.getElementById("categoryFilter").addEventListener("change", filterQuotes);
+
+// Event listener on "Show New Quote" button
+document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
 // Ensure functions are global for checker
 window.showRandomQuote = showRandomQuote;
