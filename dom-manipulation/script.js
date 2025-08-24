@@ -213,6 +213,26 @@ async function fetchQuotesFromServer() {
   }
 }
 
+// Post quotes to server (mock API)
+async function postQuotesToServer() {
+  try {
+    const response = await fetch(SERVER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(quotes)
+    });
+    if (response.ok) {
+      showNotification("Quotes successfully posted to server.");
+    } else {
+      showNotification("Failed to post quotes to server.");
+    }
+  } catch (error) {
+    showNotification("Error posting quotes to server.");
+  }
+}
+
 // Notification UI
 function showNotification(msg) {
   let note = document.getElementById("notification");
@@ -241,12 +261,25 @@ function createSyncButton() {
   }
 }
 
+// Add a button for posting quotes manually
+function createPostButton() {
+  let btn = document.getElementById("postBtn");
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "postBtn";
+    btn.textContent = "Post Quotes to Server";
+    btn.onclick = postQuotesToServer;
+    document.body.insertBefore(btn, document.getElementById("formContainer"));
+  }
+}
+
 // Initialize
 loadQuotes();
 populateCategories();
 filterQuotes();
 createAddQuoteForm();
 createSyncButton();
+createPostButton();
 setInterval(fetchQuotesFromServer, 30000); // auto-sync every 30 seconds
 
 // Restore last viewed quote if available (sessionStorage demo)
