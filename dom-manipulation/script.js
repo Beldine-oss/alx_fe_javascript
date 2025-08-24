@@ -183,34 +183,34 @@ function importFromJsonFile(event) {
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
 
 // Periodically fetch quotes from server and sync
-function fetchQuotesFromServer() {
-  fetch(SERVER_URL)
-    .then(response => response.json())
-    .then(serverData => {
-      // Simulate server quotes format
-      const serverQuotes = serverData.slice(0, 5).map(post => ({
-        text: post.title,
-        category: "Server"
-      }));
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
 
-      // Conflict resolution: server data takes precedence
-      let conflict = false;
-      if (JSON.stringify(serverQuotes) !== JSON.stringify(quotes.slice(0, 5))) {
-        conflict = true;
-        quotes = [...serverQuotes, ...quotes.slice(5)];
-        saveQuotes();
-        populateCategories();
-        filterQuotes();
-      }
+    // Simulate server quotes format
+    const serverQuotes = serverData.slice(0, 5).map(post => ({
+      text: post.title,
+      category: "Server"
+    }));
 
-      // Notify user if conflict was resolved
-      if (conflict) {
-        showNotification("Quotes updated from server. Server data has replaced local data for the first 5 quotes.");
-      }
-    })
-    .catch(() => {
-      showNotification("Failed to sync with server.");
-    });
+    // Conflict resolution: server data takes precedence
+    let conflict = false;
+    if (JSON.stringify(serverQuotes) !== JSON.stringify(quotes.slice(0, 5))) {
+      conflict = true;
+      quotes = [...serverQuotes, ...quotes.slice(5)];
+      saveQuotes();
+      populateCategories();
+      filterQuotes();
+    }
+
+    // Notify user if conflict was resolved
+    if (conflict) {
+      showNotification("Quotes updated from server. Server data has replaced local data for the first 5 quotes.");
+    }
+  } catch (error) {
+    showNotification("Failed to sync with server.");
+  }
 }
 
 // Notification UI
