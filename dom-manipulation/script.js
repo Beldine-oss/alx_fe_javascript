@@ -213,23 +213,43 @@ async function fetchQuotesFromServer() {
   }
 }
 
-// Post quotes to server (mock API)
-async function postQuotesToServer() {
+// Sync quotes with server and resolve conflicts
+async function syncQuotes() {
   try {
-    const response = await fetch(SERVER_URL, {
+    // Fetch server quotes
+    const response = await fetch(SERVER_URL);
+    const serverData = await response.json();
+    const serverQuotes = serverData.slice(0, 5).map(post => ({
+      text: post.title,
+      category: "Server"
+    }));
+
+    // Conflict resolution: server data takes precedence
+    let conflict = false;
+    if (JSON.stringify(serverQuotes) !== JSON.stringify(quotes.slice(0, 5))) {
+      conflict = true;
+      quotes = [...serverQuotes, ...quotes.slice(5)];
+      saveQuotes();
+      populateCategories();
+      filterQuotes();
+    }
+
+    // Optionally POST local quotes to server (simulate two-way sync)
+    const postResponse = await fetch(SERVER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify(quotes)
     });
-    if (response.ok) {
-      showNotification("Quotes successfully posted to server.");
+
+    if (conflict) {
+      showNotification("Sync complete: Server data replaced local data for the first 5 quotes.");
     } else {
-      showNotification("Failed to post quotes to server.");
+      showNotification("Sync complete: No conflicts detected.");
     }
   } catch (error) {
-    showNotification("Error posting quotes to server.");
+    showNotification("Sync failed: Unable to communicate with server.");
   }
 }
 
