@@ -8,12 +8,13 @@ var quotes = [
 // Function: showRandomQuote (exact name required)
 function showRandomQuote() {
   if (quotes.length === 0) {
-    document.getElementById("quoteDisplay").textContent = "No quotes available.";
+    document.getElementById("quoteDisplay").innerHTML = "<em>No quotes available.</em>";
     return;
   }
   var index = Math.floor(Math.random() * quotes.length);
   var q = quotes[index];
-  document.getElementById("quoteDisplay").textContent = '"' + q.text + '" — [' + q.category + ']';
+  document.getElementById("quoteDisplay").innerHTML =
+    '&quot;' + q.text + '&quot; &mdash; [<strong>' + q.category + '</strong>]';
 }
 
 // Function: addQuote
