@@ -243,6 +243,9 @@ async function syncQuotes() {
       body: JSON.stringify(quotes)
     });
 
+    // Show notification for sync completion
+    showNotification("Quotes synced with server!");
+
     if (conflict) {
       showNotification("Sync complete: Server data replaced local data for the first 5 quotes.");
     } else {
