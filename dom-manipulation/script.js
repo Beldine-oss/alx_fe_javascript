@@ -1,6 +1,9 @@
 // Quotes array (global, required)
 var quotes = [];
 
+// Track the currently selected category
+var selectedCategory = "all";
+
 // Load quotes from localStorage if available
 function loadQuotes() {
   const stored = localStorage.getItem("quotes");
@@ -56,17 +59,21 @@ function populateCategories() {
   const lastFilter = localStorage.getItem("lastCategoryFilter");
   if (lastFilter && filter.querySelector(`option[value="${lastFilter}"]`)) {
     filter.value = lastFilter;
+    selectedCategory = lastFilter;
+  } else {
+    selectedCategory = "all";
   }
 }
 
 // Filter quotes based on selected category
 function filterQuotes() {
-  const filter = document.getElementById("categoryFilter").value;
-  localStorage.setItem("lastCategoryFilter", filter);
+  const filterValue = document.getElementById("categoryFilter").value;
+  selectedCategory = filterValue;
+  localStorage.setItem("lastCategoryFilter", filterValue);
 
   let filteredQuotes = quotes;
-  if (filter !== "all") {
-    filteredQuotes = quotes.filter(q => q.category === filter);
+  if (filterValue !== "all") {
+    filteredQuotes = quotes.filter(q => q.category === filterValue);
   }
 
   // Display filtered quotes
